@@ -27,8 +27,14 @@ import { useEffect } from 'react';
 //   false
 // );
 
-const LSPConnectedEditor = ({ uiac }) => {
-  const languageId = 'python';
+const LSPConnectedEditor = ({
+  uiac,
+  onCodeChange,
+  language,
+  theme,
+  readOnly,
+  width,
+}) => {
   let languageClient;
 
   useEffect(() => {
@@ -79,7 +85,7 @@ const LSPConnectedEditor = ({ uiac }) => {
       name: 'Pyright Language Client',
       clientOptions: {
         // use a language id as a document selector
-        documentSelector: [languageId],
+        documentSelector: [language],
         // disable the default error handler
         errorHandler: {
           error: () => ({ action: ErrorAction.Continue }),
@@ -116,8 +122,8 @@ const LSPConnectedEditor = ({ uiac }) => {
         },
         enableLanguagesService: true,
         enableKeybindingsService: true,
-        debugLogging: true,
-        logLevel: LogLevel.Debug,
+        debugLogging: false,
+        logLevel: LogLevel.Off,
       });
 
       const extension = {
@@ -130,7 +136,7 @@ const LSPConnectedEditor = ({ uiac }) => {
         contributes: {
           languages: [
             {
-              id: languageId,
+              id: language,
               aliases: ['Python'],
               extensions: ['.py', '.pyi'],
             },
@@ -158,9 +164,11 @@ const LSPConnectedEditor = ({ uiac }) => {
       };
       registerExtension(extension, ExtensionHostKind.LocalProcess);
 
+      const editorTheme =
+        theme === 'vs-dark' ? 'Default Dark+' : 'Default Light+';
       updateUserConfiguration(`{
         "editor.fontSize": 14,
-        "workbench.colorTheme": "Default Dark+"
+        "workbench.colorTheme": "${editorTheme}"
     }`);
       // Possible Values for color theme: Default Dark+, High Contrast
 
@@ -214,38 +222,47 @@ const LSPConnectedEditor = ({ uiac }) => {
       const modelRef = await createModelReference(
         monaco.Uri.file('/tmp/hello.py')
       );
-      modelRef.object.setLanguageId(languageId);
+      modelRef.object.setLanguageId(language);
 
       // create monaco editor
       createConfiguredEditor(document.getElementById('container'), {
         model: modelRef.object.textEditorModel,
         automaticLayout: true,
+        readOnly,
       });
+      // Attach an onChange event listener to the Monaco Editor instance
+      const editor = monaco.editor.getModels()[0];
+      editor.onDidChangeContent(() => handleCodeChange());
     } catch (error) {
-      console.log(error);
+      console.log('Lang Server Connection Error, reconnecting..');
     }
   };
 
-  const getCodeFromEditor = () => {
-    const editor = monaco.editor.getModels()[0];
-    const code = editor.getValue();
-    console.log(code);
-  };
+  // Get Code from Editor
+  // const getCodeFromEditor = () => {
+  //   const editor = monaco.editor.getModels()[0];
+  //   const code = editor.getValue();
+  //   console.log(code);
+  // };
 
-  const setCodeOnEditor = () => {
+  // Set Code to Editor Dynamically
+  // const setCodeOnEditor = () => {
+  //   const editor = monaco.editor.getModels()[0];
+  //   if (uiac) {
+  //     editor.setValue(uiac);
+  //   }
+  // };
+
+  const handleCodeChange = () => {
     const editor = monaco.editor.getModels()[0];
-    if (uiac) {
-      editor.setValue(uiac);
-    }
+    onCodeChange(editor.getValue());
   };
 
   return (
     <div>
-      <button onClick={getCodeFromEditor}>Get Code</button>
-      <button onClick={setCodeOnEditor}>Set Code</button>
       <div
         id="container"
-        style={{ width: '600px', height: '500px', border: '1px solid grey' }}
+        style={{ width, height: '400px', border: '1px solid grey' }}
       ></div>
     </div>
   );
