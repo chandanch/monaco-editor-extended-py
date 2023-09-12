@@ -34,6 +34,7 @@ const LSPConnectedEditor = ({
   theme,
   readOnly,
   width,
+  key,
 }) => {
   let languageClient;
 
@@ -228,7 +229,7 @@ const LSPConnectedEditor = ({
       createConfiguredEditor(document.getElementById('container'), {
         model: modelRef.object.textEditorModel,
         automaticLayout: true,
-        readOnly,
+        readOnly: readOnly ? readOnly : false,
       });
       // Attach an onChange event listener to the Monaco Editor instance
       const editor = monaco.editor.getModels()[0];
