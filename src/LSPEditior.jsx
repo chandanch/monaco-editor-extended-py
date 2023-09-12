@@ -32,6 +32,7 @@ const LSPConnectedEditor = ({ uiac }) => {
   let languageClient;
 
   useEffect(() => {
+    // initalize and run python lang server client
     startPythonClient();
   }, []);
 
@@ -159,8 +160,9 @@ const LSPConnectedEditor = ({ uiac }) => {
 
       updateUserConfiguration(`{
         "editor.fontSize": 14,
-        "workbench.colorTheme": "Default Dark+" // Possible Values: Default Dark+, High Contrast
+        "workbench.colorTheme": "Default Dark+"
     }`);
+      // Possible Values for color theme: Default Dark+, High Contrast
 
       const fileSystemProvider = new RegisteredFileSystemProvider(false);
       fileSystemProvider.registerFile(
